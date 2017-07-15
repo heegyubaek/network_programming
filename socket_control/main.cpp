@@ -47,6 +47,7 @@ int main(int argc, char **argv)
                 close(client_sockfd);
                 break;
             }
+            printf("read : %s \n", buf);
             if(write(client_sockfd, buf, MAXBUF) < 0)
             {
                 perror("write error : ");
