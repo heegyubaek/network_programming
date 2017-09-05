@@ -3,8 +3,8 @@
 #include <arpa/inet.h>
 
 #define MAX_PACKET  10
-pcap_header headers[MAX_PACKET];
-int pcnt;
+pcap_header headers[MAX_PACKET]; //The array for stored of packet headers.
+int pcnt; //The count of packet
 int Parsing(FILE *fp);
 int main()
 {
@@ -12,12 +12,10 @@ int main()
     FILE *fp = 0;
     printf("���� ��:");
     scanf("%s",fname);
-    fp = fopen(fname, "rb");//��޹��� ������ �б�/���̳ʸ����� ����
+    fp = fopen(fname, "rb");
 
-    printf("pcap_file_header[%d], timeval[%d], pcap_header[%d]\n", sizeof(pcap_file_header), sizeof(timeval), sizeof(pcap_header));
-
-    Parsing(fp);//�м��ϱ�
-    fclose(fp);//���� �ݱ�
+    Parsing(fp);
+    fclose(fp);
     return 0;
 }
 
@@ -25,17 +23,17 @@ void ParsingEthernet(FILE *fp);
 int Parsing(FILE *fp)
 {
     pcap_file_header pfh;
-    fread(&pfh, sizeof(pfh), 1, fp);//pcap ���� ��� �б�    
-    if (pfh.magic != MAGIC) //������ �ٸ���
+    fread(&pfh, sizeof(pfh), 1, fp);//Read pcap file header
+    if (pfh.magic != MAGIC)
     {
         printf("this file format is not correct \n");
         return -1;
     }
-    printf("version:%d.%d\n", pfh.version_major, pfh.version_minor);//pcap ��� ���� ���
+    printf("version:%d.%d\n", pfh.version_major, pfh.version_minor);//print out pcap header information.
     
-    switch (pfh.linktype)//��ũ Ÿ�Կ� ���
+    switch (pfh.linktype)//Depending on the link type
     {
-    case 1:ParsingEthernet(fp); break; //Ethernet ������� �м�
+    case 1:ParsingEthernet(fp); break; //analyzing by ethernet method
     case 6:printf("Not support Token Ring\n");break;
     case 10:printf("Not support FDDI\n"); break;
     case 0:printf("Not support Loopback\n"); break;
@@ -49,29 +47,29 @@ void ViewEthernet(char *buf);
 void ParsingEthernet(FILE *fp)
 {
     char buf[65536];
-    pcap_header *ph = headers;//ph�� ��Ŷ ����� ���� ��ġ�� �ʱ�ȭ
+    pcap_header *ph = headers;//Initialize to start position of ph of packet header.
     int i = 0;
-    while (feof(fp) == 0) //������ ���� �ƴϸ� �ݺ�
+    while (feof(fp) == 0) //Iterate if not file end
     {
-        if (fread(ph, sizeof(pcap_header), 1, fp) != 1)//��Ŷ ��� �б⸦ �����ϸ�
+        if (fread(ph, sizeof(pcap_header), 1, fp) != 1)//If fail of reading packet header
         {
-            break;//���� Ż��
+            break;
         }
-        if (pcnt == MAX_PACKET) //����ź���� �м��� �� �ְ� ������ ��Ŷ ���� ����
+        if (pcnt == MAX_PACKET)
         {
-            break;//���� Ż��
+            break;
         }
-        ViewPacketHeader(ph); //��Ŷ ��� ���� ���
-        fread(buf, 1, ph->caplen, fp); //��Ŷ �б�
-        ViewEthernet(buf); //�̴��� ���� ���
-        ph++;//ph�� ���� ��ġ�� �̵�
+        ViewPacketHeader(ph); //print out of packet header information.
+        fread(buf, 1, ph->caplen, fp); //Reading packet
+        ViewEthernet(buf); //print out of ethernet information.
+        ph++;//Move ph to the next position.
     }
 }
 
 
 void ViewPacketHeader(pcap_header *ph)
 {
-    pcnt++;//��Ŷ ������ 1 ����
+    pcnt++;//Increase 1 of packet count
     printf("\nNo:%dtime:%08d:%06d caplen:%u length:%u \n",
         pcnt, ph->ts.tv_sec, ph->ts.tv_usec, ph->caplen, ph->len);
 }
@@ -81,19 +79,19 @@ void ViewIP(char *buf);
 void ViewARP(char *buf);
 void ViewEthernet(char *buf)
 {
-    ethernet *ph = (ethernet *)buf; //��Ŷ ���۸� ethernet ����ü �����ͷ� �� ��ȯ
+    ethernet *ph = (ethernet *)buf; //typecasting of packet buffer to pointer of ethernet struct.
     printf("===========ETHERNET Header==============\n");
     printf("dest mac:0x");
-    ViewMac(ph->dest_mac);//MAC �ּ� ���
+    ViewMac(ph->dest_mac);//print out MAC address
     printf("  src mac:0x");
-    ViewMac(ph->src_mac);//MAC �ּ� ���
+    ViewMac(ph->src_mac);//print out MAC address
     printf("  type:%#x\n", ntohs(ph->type));    
-    //Link Ÿ���� ���(2����Ʈ �̻����ʹ� network byte order -> host byte order �� ��ȯ�ؾ� ��
+    //print out link type(The data of over 2 byte should be transformation to network byte order-> host byte order.
     
     switch (ntohs(ph->type))
-	{
-    case 0x800:ViewIP(buf + sizeof(ethernet)); /*IP ���� ��� */ break;
-    case 0x806:ViewARP(buf + sizeof(ethernet)); /*ARP ���� ���*/ break;
+    {
+    case 0x800:ViewIP(buf + sizeof(ethernet)); /*print out IP information*/ break;
+    case 0x806:ViewARP(buf + sizeof(ethernet)); /*print out ARP information*/ break;
     default:printf("Not support Protocol [0x%x]\n", ntohs(ph->type)); break;
     }
 }
@@ -111,7 +109,7 @@ ushort ip_checksum(ushort *base, int len);
 void ViewIP(char *buf)
 {
     struct sockaddr_in addr;
-    iphdr *ip = (iphdr *)buf; //��Ŷ ���۸� ethernet ����ü �����ͷ� ��ȯ
+    iphdr *ip = (iphdr *)buf; //typecasting of packet buffer to pointer of iphdr struct.
     printf("\n=========== IPv4 Header ==============\n");
 
     bzero(&addr, sizeof(addr));
