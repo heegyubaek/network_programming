@@ -10,7 +10,7 @@ int main()
 {
     char fname[256];
     FILE *fp = 0;
-    printf("���� ��:");
+    printf("pcap file name:");
     scanf("%s",fname);
     fp = fopen(fname, "rb");
 
