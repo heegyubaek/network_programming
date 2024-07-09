@@ -8,6 +8,16 @@
 
 #define MAXBUF 256
 
+void prependReceived(char *buf)
+{
+    const char *prefix = "received: ";
+    size_t prefixLength = strlen(prefix);
+    size_t bufLength = strlen(buf);
+
+    memmove(buf + prefixLength, buf, bufLength + 1);
+    memcpy(buf, prefix, prefixLength);
+}
+
 int main(int argc, char **argv)
 {
     int server_sockfd, client_sockfd;
@@ -17,38 +27,39 @@ int main(int argc, char **argv)
 
     client_len = sizeof(clientaddr);
 
-    //Create socket
-    if((server_sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    // Create socket
+    if ((server_sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         perror("socket error : ");
         exit(0);
     }
 
-    //Binding socket
+    // Binding socket
     bzero(&serveraddr, sizeof(serveraddr));
     serveraddr.sin_family = AF_INET;
     serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
     serveraddr.sin_port = htons(atoi(argv[1]));
     bind(server_sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
 
-    //Listen socket
+    // Listen socket
     listen(server_sockfd, 5);
 
-    while(1)
+    while (1)
     {
         memset(buf, 0x00, MAXBUF);
-        //Accept socket
+        // Accept socket
         client_sockfd = accept(server_sockfd, (struct sockaddr *)&clientaddr, &client_len);
 
-        while(1)
+        while (1)
         {
-            if((n = read(client_sockfd, buf, MAXBUF)) < 0)
+            if ((n = read(client_sockfd, buf, MAXBUF)) < 0)
             {
                 close(client_sockfd);
                 break;
             }
+            prependReceived(buf);
             printf("read : %s \n", buf);
-            if(write(client_sockfd, buf, MAXBUF) < 0)
+            if (write(client_sockfd, buf, MAXBUF) < 0)
             {
                 perror("write error : ");
                 close(client_sockfd);
@@ -57,7 +68,6 @@ int main(int argc, char **argv)
         }
         close(client_sockfd);
     }
-
 
     return -1;
 }
