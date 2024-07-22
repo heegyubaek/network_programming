@@ -7,4 +7,7 @@ extern int globalVar;
 // extern 키워드를 추가하나 안하나 동일한 효과를 가짐
 void printGlobalVar();
 
+// Declare a global variable, errno, with C linkage.
+extern "C" int errno;
+
 #endif
