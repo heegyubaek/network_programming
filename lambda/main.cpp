@@ -52,4 +52,7 @@ int main()
 
     fillVector(v);
     print("vector v after 2nd call to fillVector(): ", v);
+
+    fillVector(v);
+    print("vector v after 3rd call to fillVector(): ", v);
 }
