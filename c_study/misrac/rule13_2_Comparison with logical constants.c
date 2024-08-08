@@ -12,7 +12,7 @@
     return false;
  }
 
- void main() {
+ int main() {
     bool flag = false;
 
     func(flag);
